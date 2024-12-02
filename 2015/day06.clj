@@ -16,7 +16,7 @@
 
 (def actions (map line input))
 
-(def grid (vec (repeat (* size size) false)))
+(def grid (vec (repeat (* size size) 0)))
 
 (defn points
   "Gen list of points contained by p1-p2"
@@ -25,42 +25,29 @@
         y (range y0 (inc y1))]
     (+ x (* y size))))
 
-(defn off [_] false)
-(defn on [_] true)
-(defn toggle [val] (not val))
+(defn off [val] (max (dec val) 0))
+(defn on [val] (inc val))
+(defn toggle [val] (+ 2 val))
 
 (defn paint [grid action p1 p2]
   (let [action-fn ({:off off :on on :toggle toggle} action)
         coords (points p1 p2)]
     (apply assoc grid
-           (flatten (map #(list % (action-fn (grid %))) coords)))))
-
-
-(defn render-grid
-  "render grid"
-  [grid]
-  (let [chars {false \_ true \#}]
-    (for [y (range size)]
-      (let [start (* size y)
-            end (+ start size)
-            row (subvec grid start end)]
-        (map #(get chars %) row)))))
+           (flatten (map #(list % (action-fn (get grid % 0))) coords)))))
 
 (defn count-on [grid]
-  (reduce (fn [acc val] (if val (inc acc) acc)) 0 grid))
+  (reduce + 0 grid))
 
 (defn run-actions [grid actions]
   (reduce (fn [grid [action p1 p2]] (paint grid action p1 p2)) grid actions))
 
 (comment
 
-  (points [0 0] [1 1])
+  (count (points [0 0] [9 9]))
 
   (-> grid
-      (paint :on [0 0] [1 1])
-      (paint :off [0 0] [0 0])
-      (paint :toggle [0 0] [2 2])
-      (render-grid))
+      (paint :toggle [0 0] [999 999])
+      (count-on))
 
   (-> grid
       (run-actions actions)
@@ -75,4 +62,5 @@
   (map line
        (take 20 input))
   )
+  
   
