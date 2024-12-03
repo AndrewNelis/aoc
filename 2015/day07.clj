@@ -80,8 +80,8 @@ NOT y -> i")
       (recur (eval-instruction regs (first instructions)) (rest instructions)))))
 
 
-(defn wait-for-register [instructions attr]
-  (loop [regs {}
+(defn wait-for-register [regs instructions attr]
+  (loop [regs regs
          lastcount -1]
     (let [count (count (filter some? (vals regs)))]
       ;; Assert gate count is increasing!
@@ -96,9 +96,16 @@ NOT y -> i")
   (def instructions (parse-instructions input))
   (count instructions)
 
-  (wait-for-register instructions :a)
+  (wait-for-register {} instructions :a)
+
+  (def a-value 16076)
 
   (eval-all-instructions {} instructions)
+
+  (def not-b-instructions (filter #(not= (last %) :b) instructions))
+
+  ; Now, take the signal you got on wire a, override wire b to that signal
+  (wait-for-register {:b a-value} not-b-instructions :a)
 
   (eval-gate {} :and [6 2])
   (eval-gate {:a 1 :b 1} :and [:a :b])
@@ -109,4 +116,5 @@ NOT y -> i")
 
   sample-input
   (->> (str/split-lines sample-input)
-       (map parse-line)))
+       (map parse-line))
+  )
